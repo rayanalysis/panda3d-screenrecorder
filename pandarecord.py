@@ -62,6 +62,11 @@ def cv_video_output():
 
     out_vid.release()
     print('Video conversion complete.' + '\n' + 'Saving video to program dir.')
+    
+    for f in os.listdir(base.cap_dir):
+        os.remove(base.cap_dir + f)
+
+    base.cap_continue = True
 
 def screen_cap_acc():
     if base.cap_continue:
@@ -104,8 +109,6 @@ def output_accum_screens():
         print('Finished writing images.' + '\n' + 'Beginning video conversion.')
 
         cv_video_output()
-
-        base.cap_continue = True
 
     threading2._start_new_thread(iter_textures, ())
 
