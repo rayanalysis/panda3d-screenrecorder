@@ -28,7 +28,7 @@ def setup_sg(input_np, output_file = 'screencap_vid', buff_hw = [512,256], use_c
     try:
         base.cap_dir = os.path.join(img_dir)
     except:
-        os.makedir(os.path.join('caps'))
+        os.makedirs(os.path.join('caps'))
         base.cap_dir = os.path.join(img_dir)
         
     # make sure /caps folder is empty
