@@ -105,6 +105,8 @@ def output_accum_screens():
 
         cv_video_output()
 
+        base.cap_continue = True
+
     threading2._start_new_thread(iter_textures, ())
 
 def screengrab_task(input_np):
