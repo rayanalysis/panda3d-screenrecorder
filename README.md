@@ -10,6 +10,8 @@ This screen recorder currently supports the .mp4 format, and is threaded so as t
 ## Usage
 Press 'p' to initiate the instant replay recording, once `setup_sg(base)` has been called.
 ```python
+import pandarecord  # this is the individual local file "pandarecord" containing the program definitions
+
 base = ShowBase()
 pandarecord.setup_sg(base)  # setup_sg(input_np, output_file = 'screencap_vid', buff_hw = [512,256], use_clock = False)
 ```
