@@ -9,7 +9,7 @@ def setup_sg(input_np, output_file = 'screencap_vid', buff_hw = [512,256], use_c
     base.use_clock = use_clock
     base.win_texture_a = base.win.make_texture_buffer("win_texture_a", base.buff_hw[0], base.buff_hw[1], to_ram = True)
     win_a_sg = NodePath("win_a_scenegraph")
-    base.win_a_cam = base.make_camera(base.win_texture_a, lens=PerspectiveLens(90, 5))
+    base.win_a_cam = base.make_camera(base.win_texture_a, lens=base.camLens)
     win_a_sg.reparent_to(base.render)
     base.win_a_cam.reparent_to(base.cam)
 
