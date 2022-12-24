@@ -22,7 +22,7 @@ base = ShowBase()
 pandarecord.setup_sg(base)  # setup_sg(input_np,output_file='screencap_vid',buff_hw=[512,256],use_clock=False,RAM_mode=False,max_screens=5000,cust_fr=60)
 ```
 
-If you are not using RAM_mode=True , you will need to create the folder caps/ in your program directory to allow storage of the movie frames.
+As of the current version, you will need to create the folder caps/ in your program directory to allow storage of the movie frames.
 
 ## TODO
 - Make a PyPI package
