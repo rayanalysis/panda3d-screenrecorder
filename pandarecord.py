@@ -2,11 +2,17 @@ from panda3d.core import NodePath, Filename, PerspectiveLens
 import os
 import cv2
 import copy
+import io
+import numpy
+from PIL import Image
 from direct.stdpy import threading2
 
-def setup_sg(input_np, output_file = 'screencap_vid', buff_hw = [512,256], use_clock = False):
+def setup_sg(input_np,output_file='screencap_vid',buff_hw=[512,256],use_clock=False,RAM_mode=False,max_screens=5000,cust_fr=60):
     base.buff_hw = buff_hw
     base.use_clock = use_clock
+    base.RAM_mode = RAM_mode
+    base.max_screens = max_screens
+    base.cust_fr = cust_fr
     base.win_texture_a = base.win.make_texture_buffer("win_texture_a", base.buff_hw[0], base.buff_hw[1], to_ram = True)
     win_a_sg = NodePath("win_a_scenegraph")
     base.win_a_cam = base.make_camera(base.win_texture_a, lens=base.camLens)
@@ -38,35 +44,59 @@ def setup_sg(input_np, output_file = 'screencap_vid', buff_hw = [512,256], use_c
     screengrab_task(input_np)
 
 def cv_video_output():
-    source_imgs = [img for img in os.listdir(base.cap_dir)]
-    source_imgs.sort()
-    frame_a = cv2.imread(base.cap_dir + source_imgs[20])
-    height, width, layers = frame_a.shape
-
-    fr = float(base.clock.get_average_frame_rate())  # this breaks the save if fr is irrationally small or so
-
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fr = float(base.clock.get_average_frame_rate())  # this breaks the save if fr is irrationally small or so
     
-    if not base.use_clock:
-        out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,60,(base.buff_hw[0], base.buff_hw[1]))
-    elif base.use_clock:
-        out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,fr,(base.buff_hw[0], base.buff_hw[1]))
+    if not base.RAM_mode:
+        source_imgs = [img for img in os.listdir(base.cap_dir)]
+        source_imgs.sort()
+        frame_a = cv2.imread(base.cap_dir + source_imgs[20])
+        height, width, layers = frame_a.shape
+        
+        if not base.use_clock:
+            out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,base.cust_fr,(base.buff_hw[0], base.buff_hw[1]))
+        elif base.use_clock:
+            out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,fr,(base.buff_hw[0], base.buff_hw[1]))
 
-    for i in sorted(os.listdir(base.cap_dir)):
-        try:
-            frame = cv2.imread(base.cap_dir + i)
-            frame_r = cv2.resize(frame, (base.buff_hw[0], base.buff_hw[1]), interpolation=cv2.INTER_CUBIC)
-            out_vid.write(frame_r)
-        except:
-            print('Frame may have been empty, passing.')
+        for i in sorted(os.listdir(base.cap_dir)):
+            try:
+                frame = cv2.imread(base.cap_dir + i)
+                frame_r = cv2.resize(frame, (base.buff_hw[0], base.buff_hw[1]), interpolation=cv2.INTER_CUBIC)
+                out_vid.write(frame_r)
+            except:
+                print('Frame may have been empty, passing.')
 
-    out_vid.release()
-    print('Video conversion complete.' + '\n' + 'Saving video to program dir.')
-    
-    for f in os.listdir(base.cap_dir):
-        os.remove(base.cap_dir + f)
+        out_vid.release()
+        print('Video conversion complete.' + '\n' + 'Saving video to program dir.')
+        
+        for f in os.listdir(base.cap_dir):
+            os.remove(base.cap_dir + f)
 
-    base.cap_continue = True
+        base.cap_continue = True
+        
+    elif base.RAM_mode:
+        print('The current average framerate: ' + str(fr))
+        sorted_screens = {key: val for key, val in sorted(base.screens.items(), key = lambda element: element[0])}
+
+        if not base.use_clock:
+            out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,base.cust_fr,(base.buff_hw[0], base.buff_hw[1]))
+        elif base.use_clock:
+            out_vid = cv2.VideoWriter(str(base.output_file) + '.mp4',fourcc,fr,(base.buff_hw[0], base.buff_hw[1]))
+            
+        for num, img in sorted_screens.items():
+            if img.has_ram_image():
+                img_array = Image.frombuffer('RGBA',(base.buff_hw[0], base.buff_hw[1]),img.get_ram_image_as('RGBA'),'raw','RGBA',-1,-1)
+                cv_img = cv2.cvtColor(numpy.array(img_array), cv2.COLOR_RGBA2BGR)
+                frame_r = cv2.resize(cv_img, (base.buff_hw[0], base.buff_hw[1]), interpolation=cv2.INTER_CUBIC)
+                out_vid.write(frame_r)
+
+        out_vid.release()
+        print('Video conversion complete.' + '\n' + 'Saving video to program dir.')
+
+        del base.screens
+        base.screens = {}
+
+        base.cap_continue = True
 
 def screen_cap_acc():
     if base.cap_continue:
@@ -78,9 +108,10 @@ def screen_cap_acc():
 
         base.screens[base.screen_num] = tex_a_copy
 
-        if len(base.screens) > 3000:  # prevent image dict from growing arbitrarily large
+        if len(base.screens) > base.max_screens:  # prevent image dict from growing arbitrarily large
             first_key = list(base.screens.keys())[0]
-            for x in range(1000):
+            print(len(base.screens))
+            for x in range(base.max_screens/5):
                 base.screens.pop(first_key)
                 first_key += 1
         
@@ -96,17 +127,18 @@ def output_accum_screens():
     print('Instant replay recording initiated.' + '\n' + 'Working...')
     
     def iter_textures():
-        for num, img in base.screens.items():
-            try:
-                img.write(Filename('caps/' + str(num) + '.png'))
-            except:
-                if num != 1000:
-                    print('Image ' + str(num) + ' failed.')
+        if not base.RAM_mode:
+            for num, img in base.screens.items():
+                try:
+                    img.write(Filename('caps/' + str(num) + '.png'))
+                except:
+                    if num != 1000:
+                        print('Image ' + str(num) + ' failed.')
             
-        del base.screens
-        base.screens = {}
+            del base.screens
+            base.screens = {}
 
-        print('Finished writing images.' + '\n' + 'Beginning video conversion.')
+            print('Finished writing images.' + '\n' + 'Beginning video conversion.')
 
         cv_video_output()
 
