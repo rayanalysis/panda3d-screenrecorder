@@ -1,9 +1,11 @@
 # panda3d-screenrecorder
 An easy screen recorder that works with panda3d, and offers instant replay functionality.
 
-This screen recorder currently supports the .mp4 format, and is threaded so as to be non-blocking to your game/program logic. The screen recorder saves live image data from your game/program into a Python dictionary which is kept at constant size, giving you instant access to the last 30 seconds or so of your gameplay.
+This screen recorder currently supports the .mp4 format, and is threaded so as to be non-blocking to your game/program logic. The screen recorder saves live image data from your game/program into a Python dictionary which is kept at constant size. This allows instant access to a custom duration of gameplay footage.
 
-When RAM_mode=True the recording will be performed entirely in system RAM , which gives a significant performance improvement. See the Usage sample for a listing of all the optional inputs to pandarecord.setup_sg() . Set max_screens=int(some_int) to limit the amount of RAM committed to the image dictionary.
+You may specify a maximum number of stored frames, and set your framerate target. These values will determine your recording duration. You may also specify a custom resolution via buff_hw=[w,h] .
+
+When RAM_mode=True , the recording will be performed entirely in system RAM which gives a significant performance improvement. See the Usage sample for a listing of all the optional inputs to pandarecord.setup_sg() . Set max_screens=int(some_int) to limit the amount of RAM committed to the image dictionary (default=5000).
 
 ## Prerequisites
 - panda3d-1.10.13 (or higher)
