@@ -10,6 +10,8 @@ When RAM_mode=True , the recording will be performed entirely in system RAM whic
 ## Prerequisites
 - panda3d-1.10.13 (or higher)
 - opencv-python
+- numpy
+- PIL
 
 ## Usage
 Press 'p' to initiate the instant replay recording, once `setup_sg(base)` has been called.
