@@ -5,7 +5,11 @@ This screen recorder currently supports the .mp4 format, and is threaded so as t
 
 You may specify a maximum number of stored frames, and set your framerate target. These values will determine your recording duration. You may also specify a custom resolution via buff_hw=[w,h] .
 
-When RAM_mode=True , the recording will be performed entirely in system RAM which gives a significant performance improvement. See the Usage sample for a listing of all the optional inputs to pandarecord.setup_sg() . Set max_screens=int(some_int) to limit the amount of RAM committed to the image dictionary (default=5000).
+When RAM_mode=True , panda3d-screenrecorder will attempt to perform the entire conversion in system RAM, which gives a significant performance improvement. See the Usage sample for a listing of all the optional inputs to pandarecord.setup_sg() . 
+
+Set max_screens=int(some_int) to limit the amount of RAM committed to the image dictionary (default=5000).
+
+When setting write_threads=int(some_int), keep in mind that anything above write_threads=1 is currently experimental, even if tacitly supported. Better async integration for file writes should come around after the 1.10.13 dev updates are official for async screenshots. This setting has no effect on RAM_mode=True, use_native=False runs.
 
 ## Prerequisites
 - panda3d-1.10.13 (or higher)
@@ -25,4 +29,4 @@ pandarecord.setup_sg(base)  # setup_sg(input_np,output_file='screencap_vid',buff
 As of the current version, you will need to create the folder caps/ in your program directory to allow storage of the movie frames.
 
 ## TODO
-- Make a PyPI package
+- Updates forthcoming for async writes, and RAM_mode for use_native=True.
