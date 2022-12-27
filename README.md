@@ -19,7 +19,7 @@ Press 'p' to initiate the instant replay recording, once `setup_sg(base)` has be
 import pandarecord  # this is the individual local file "pandarecord" containing the program definitions
 
 base = ShowBase()
-pandarecord.setup_sg(base)  # setup_sg(input_np,output_file='screencap_vid',buff_hw=[512,256],use_clock=False,RAM_mode=False,max_screens=5000,cust_fr=60)
+pandarecord.setup_sg(base)  # setup_sg(input_np,output_file='screencap_vid',buff_hw=[720,400],use_clock=False,RAM_mode=True,max_screens=5000,cust_fr=60,use_native=False,write_threads=1,capture_key='p')
 ```
 
 As of the current version, you will need to create the folder caps/ in your program directory to allow storage of the movie frames.
