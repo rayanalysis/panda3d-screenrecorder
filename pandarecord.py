@@ -219,5 +219,5 @@ def output_accum_screens():
     iter_use_native()
 
 def screengrab_task(input_np, capture_key):
-    input_np.task_mgr.add(screen_cap_accum)
-    input_np.accept(str(capture_key), output_accum_screens)
+    base.task_mgr.add(screen_cap_accum)
+    base.accept(str(capture_key), output_accum_screens)
