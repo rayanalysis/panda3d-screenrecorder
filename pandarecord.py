@@ -101,10 +101,13 @@ def cv_video_output():
         if not base.pandarecord_use_native:
             for num, img in sorted_screens.items():
                 if img.has_ram_image():
-                    img_array = Image.frombuffer('RGBA',(base.buff_hw[0], base.buff_hw[1]),img.get_ram_image_as('RGBA'),'raw','RGBA',-1,-1)
-                    cv_img = cv2.cvtColor(numpy.array(img_array), cv2.COLOR_RGBA2BGR)
-                    frame_r = cv2.resize(cv_img, (base.buff_hw[0], base.buff_hw[1]), interpolation=cv2.INTER_CUBIC)
-                    out_vid.write(frame_r)
+                    try:
+                        img_array = Image.frombuffer('RGBA',(base.buff_hw[0], base.buff_hw[1]),img.get_ram_image_as('RGBA'),'raw','RGBA',-1,-1)
+                        cv_img = cv2.cvtColor(numpy.array(img_array), cv2.COLOR_RGBA2BGR)
+                        frame_r = cv2.resize(cv_img, (base.buff_hw[0], base.buff_hw[1]), interpolation=cv2.INTER_CUBIC)
+                        out_vid.write(frame_r)
+                    except:
+                        print('Frame may have been empty, passing.')       
                     
         elif base.pandarecord_use_native:
             print('Sorry, use_native=True currently only supports RAM_mode=False' + '\n' + 'Continuing with threaded write mode.')
@@ -119,7 +122,7 @@ def cv_video_output():
             for f in os.listdir(base.cap_dir):
                 os.remove(base.cap_dir + f)
                 
-            out_vid.release()
+        out_vid.release()
         print('Video conversion complete.' + '\n' + 'Saving video to program dir (last update).')
 
         del base.screens
